@@ -15,6 +15,13 @@ resource "aws_security_group" "security_group" {
     cidr_blocks = ["186.86.34.5/32"]
   }
 
+  ingress {
+    from_port   = "0"
+    to_port     = "65535"
+    protocol    = "all"
+    cidr_blocks = ["172.31.16.0/20", "172.31.0.0/20"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -23,12 +30,6 @@ resource "aws_security_group" "security_group" {
   }
 }
 
-resource "aws_iam_instance_profile" "profile_cluster" {
-  name = "profile_cluster"
-  role = data.aws_iam_role.ec2_role.name
-}
-
-
 resource "aws_instance" "master_cluster" {
   ami                         = "ami-0e999cbd62129e3b1"
   instance_type               = "t2.micro"
@@ -36,12 +37,13 @@ resource "aws_instance" "master_cluster" {
   associate_public_ip_address = true
   key_name                    = aws_key_pair.cluser_key.key_name
   security_groups             = [aws_security_group.security_group.id]
-  iam_instance_profile        = aws_iam_instance_profile.profile_cluster.name
   user_data                   = filebase64("install_server.sh")
 
 
   tags = {
     k8stype = "master-k8s"
     owner   = "chaos"
+    Name    = "master"
   }
+
 }
